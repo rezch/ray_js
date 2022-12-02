@@ -1,8 +1,8 @@
-let ray_k = 1;
-let ray_dist = 10000;
-let ray_collisions = 2;
-let beam_density = 0.3;
-let sc_width = 1000, sc_height = 800;
+let ray_k = 2;
+let ray_dist = 1000;
+let ray_collisions = 1;
+let beam_density = 0.4;
+let sc_width = 1400, sc_height = 800;
 
 function setup() {
     createCanvas(sc_width, sc_height);
@@ -64,7 +64,9 @@ class Ray {
         if (inters) {
             this.collisions -= 1;
             this.angle_temp = 2 * wall.angle - this.angle_temp
+            return 1;
         }
+        return 0;
     }
 
     draw() {
@@ -73,19 +75,26 @@ class Ray {
         this.angle_temp = this.angle;
         this.collisions = ray_collisions;
 
+        strokeWeight(0.6)
+        let xstart = x, ystart = y;
         for (let i = 0; i < ray_dist; i++) {
-            if (this.collisions <= 0) {
-                continue;
-            }
-            strokeWeight(0.6)
-            line(x, y, x, y)
-
-            for (const wall of walls) {
-                this.reflection(x, y, wall)
-            }
             x += cos(this.angle_temp) * ray_k;
             y -= sin(this.angle_temp) * ray_k;
+
+            for (const wall of walls) {
+                if (this.reflection(x, y, wall)) {
+                    line(xstart, ystart, x, y)
+                    xstart = x
+                    ystart = y
+                }
+            }
+
+            if (this.collisions <= 0) {
+                line(xstart, ystart, x, y)
+                break;
+            }
         }
+        line(xstart, ystart, x, y)
     }
 }
 
@@ -115,12 +124,28 @@ let wall1 = new Wall(350, 240, 30, 200)
 let wall2 = new Wall(350, 240, -30, 200)
 let wall3 = new Wall(523, 140, 55, 200)
 let wall4 = new Wall(400, 340, 180, 400)
+let wall5 = new Wall(800, 640, -42, 400)
+let wall66 = new Wall(1000, 440, 120, 400)
 
-let beam1 = new Beam(300, 300);
+let beam1 = new Beam(sc_width / 2, sc_height / 2);
 
 function draw() {
     background(220);
     beam1.draw()
+    /*if ((keyIsPressed === true) && (key === 'w')) {
+        beam1.y -= 5
+    }
+    if ((keyIsPressed === true) && (key === 'a')) {
+        beam1.x -= 5
+    }
+    if ((keyIsPressed === true) && (key === 's')) {
+        beam1.y += 5
+    }
+    if ((keyIsPressed === true) && (key === 'd')) {
+        beam1.x += 5
+    }*/
+    beam1.x = mouseX
+    beam1.y = mouseY
 
     for (const wall of walls) {
         wall.draw()
