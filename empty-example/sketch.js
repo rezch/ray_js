@@ -5,7 +5,8 @@ let beam_density = 0.4;
 
 let sc_width = 1400, sc_height = 800;
 
-let player_speed = 10;
+let player_speed = 100;
+let ball_size = 10;
 
 
 function setup() {
@@ -142,28 +143,81 @@ class Player {
 }
 
 
+class Ball {
+    constructor(x, y, angle, speed) {
+        this.x = x;
+        this.y = y;
+        this.angle = angle / 57.3;
+        this.angle_temp = angle / 57.3;
+        this.speed = speed;
+    }
+
+    reflection(x, y, wall) {
+        let newx = x + cos(this.angle_temp) * this.speed;
+        let newy = y - sin(this.angle_temp) * this.speed;
+
+        let inters = wall.intersect(x, y, newx, newy);
+        if (inters) {
+            this.angle_temp = 2 * wall.angle - this.angle_temp;
+            newx = x + cos(this.angle_temp) * this.speed;
+            newy = y - sin(this.angle_temp) * this.speed;
+            return [newx, newy];
+        }
+        return [newx, newy];
+    }
+
+    draw() {
+        strokeWeight(2);
+        ellipse(this.x, this.y, ball_size, ball_size);
+
+        let newxy = [this.x, this.y];
+        for (const wall of walls) {
+            newxy = this.reflection(this.x, this.y, wall);
+        }
+
+        this.x = newxy[0];
+        this.y = newxy[1];
+    }
+}
+
+
 let border1 = new Wall (0, 0, 0, sc_width);
 let border2 = new Wall (0, 0, -90, sc_height);
 let border3 = new Wall (sc_width, 0, -90, sc_height);
-let border4 = new Wall (0, sc_height, 0, sc_height);
+let border4 = new Wall (0, sc_height, 0, sc_width);
 
 //let ray = new Ray(150, 200, -5);
 
-let wall1 = new Wall(350, 240, 30, 200);
+/*let wall1 = new Wall(350, 240, 30, 200);
 let wall2 = new Wall(350, 240, -30, 200);
 let wall3 = new Wall(523, 140, 55, 200);
 let wall4 = new Wall(400, 340, 180, 400);
 let wall5 = new Wall(800, 640, -42, 400);
-let wall66 = new Wall(1000, 440, 120, 400);
+let wall66 = new Wall(1000, 440, 120, 400);*/
 
 //let beam1 = new Beam(sc_width / 2, sc_height / 2);
 let player = new Player(sc_width / 2, sc_height / 2);
 
-function draw() {
-    background(220);
-    player.draw();
+let balls = [];
 
-    if (keyIsPressed === true) {
+let angle = 0;
+for (let i = 0; i < 1000; i++) {
+    balls.push(
+        new Ball(sc_width / 2, sc_height / 2, angle, 5)
+    );
+    angle += 0.4;
+}
+
+function draw() {
+    frameRate(400);
+    background(220);
+    //player.draw();
+
+    for (const ball of balls) {
+        ball.draw();
+    }
+
+    /*if (keyIsPressed === true) {
         if (key === 'w') {
             player.step(90);
         }
@@ -176,10 +230,7 @@ function draw() {
         if (key === 'd') {
             player.step(0);
         }
-    }
-
-    //beam1.x = mouseX;
-    //beam1.y = mouseY;
+    }*/
 
     for (const wall of walls) {
         wall.draw();
